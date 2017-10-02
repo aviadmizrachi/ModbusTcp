@@ -2,7 +2,20 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>1.0.1</Version>
+    <Version>1.0.2</Version>
+    <Authors>Aviad Mizrachi</Authors>
+    <Company />
+    <Product>Modbus TCP implementation for .NET</Product>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Description>Provides basic .NET implementation for Modbus TCP protocol</Description>
+    <Copyright>Aviad Mizrachi</Copyright>
+    <PackageLicenseUrl>https://www.apache.org/licenses/LICENSE-2.0</PackageLicenseUrl>
+    <PackageProjectUrl>https://github.com/aviadmizrachi/ModbusTcp</PackageProjectUrl>
+    <PackageIconUrl>https://github.com/aviadmizrachi/ModbusTcp/blob/master/Icons/modbus.png</PackageIconUrl>
+    <RepositoryUrl>https://github.com/aviadmizrachi/ModbusTcp</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageTags>Modbus TCP c# .NET ModBus</PackageTags>
+    <PackageReleaseNotes>Support for write multiple registers</PackageReleaseNotes>
   </PropertyGroup>
 
   <ItemGroup>
