@@ -13,6 +13,13 @@ namespace ModbusTcp.Protocol.Request
             UnitIdentifier = 0x01;
         }
 
+        public ModbusRequest03(int offset, int numberOfWords)
+            : this()
+        {
+            ReferenceNumber = (short)offset;
+            WordCount = (short)numberOfWords;
+        }
+
         [MarshalAs(UnmanagedType.U1)]
         public byte UnitIdentifier;
 
