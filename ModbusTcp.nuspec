@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <package >
   <metadata>
-    <id>ModbusTcp</id>
+    <id>Modbus.Net.Tcp</id>
     <version>0.1.0</version>
     <title>Modbus TCP implemntation in .NET core</title>
     <authors>Aviad Mizrachi</authors>
