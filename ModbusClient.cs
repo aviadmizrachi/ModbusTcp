@@ -5,6 +5,8 @@ using System.Threading.Tasks;
 using ModbusTcp.Protocol;
 using System.Linq;
 using ModbusTcp.Protocol.Reply;
+using System.Collections.Generic;
+using System.Net;
 
 namespace ModbusTcp
 {
@@ -48,7 +50,56 @@ namespace ModbusTcp
             await transportStream.WriteAsync(buffer, 0, buffer.Length);
 
             var response = await ReadResponse<ModbusReply03>();
-            return response.Data;
+            return ReadAsShort(response.Data);
+        }
+
+        public async Task<float[]> ReadRegistersFloatsAsync(int offset, int count)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest03();
+            request.ReferenceNumber = (short)offset;
+            request.WordCount = (short)count;
+
+            var buffer = request.ToNetworkBuffer();
+            await transportStream.WriteAsync(buffer, 0, buffer.Length);
+
+            var response = await ReadResponse<ModbusReply03>();
+            return ReadAsFloat(response.Data);
+        }
+
+        private short[] ReadAsShort(byte[] data)
+        {
+            var idx = 0;
+            var output = new List<short>();
+
+            while (idx < data.Length)
+            {
+                var value = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(data, idx));
+                idx += 2;
+
+                output.Add(value);
+            }
+
+            return output.ToArray();
+        }
+
+        private float[] ReadAsFloat(byte[] data)
+        {
+            var idx = 0;
+            var output = new List<float>();
+
+            while (idx < data.Length)
+            {
+                var value = IPAddress.NetworkToHostOrder(BitConverter.ToInt32(data, idx));
+                var f = BitConverter.ToSingle(BitConverter.GetBytes(value), 0);
+                idx += 4;
+
+                output.Add(f);
+            }
+
+            return output.ToArray();
         }
 
         private async Task<T> ReadResponse<T>() where T : ModbusReponseBase
@@ -86,13 +137,5 @@ namespace ModbusTcp
 
             return buffer;
         }
-
-        //public float[] ReadRegistersAsFloat(int offset, int wordCount)
-        //{
-        //    if (tcpClient == null)
-        //        throw new Exception("Object not intialized");
-
-
-        //}
     }
 }
