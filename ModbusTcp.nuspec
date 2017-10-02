@@ -8,7 +8,7 @@
     <owners>Aviad Mizrachi</owners>
     <licenseUrl>https://www.apache.org/licenses/LICENSE-2.0</licenseUrl>
     <projectUrl>https://github.com/aviadmizrachi/ModbusTcp</projectUrl>
-    <iconUrl>http://ICON_URL_HERE_OR_DELETE_THIS_LINE</iconUrl>
+    <iconUrl>https://github.com/aviadmizrachi/ModbusTcp/blob/master/Icons/modbus.png</iconUrl>
     <requireLicenseAcceptance>false</requireLicenseAcceptance>
     <description>Modbus TCP implemntation in .NET core.</description>
     <releaseNotes>Support read registers</releaseNotes>
