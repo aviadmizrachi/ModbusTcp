@@ -3,15 +3,20 @@ using System.Net;
 
 namespace ModbusTcp.Protocol.Reply
 {
-    class ModbusReply03 : ModbusReponseBase
+    class ModbusReply16 : ModbusReponseBase
     {
         public byte UnitIdentifier;
 
         public byte FunctionCode;
 
-        public byte Length;
+        public short ReferenceNumber;
 
-        public byte[] Data;
+        public short WordCount;
+
+        public ModbusReply16()
+        {
+            
+        }
 
         public override void FromNetworkBuffer(byte[] buffer)
         {
@@ -22,10 +27,12 @@ namespace ModbusTcp.Protocol.Reply
 
             UnitIdentifier = buffer[idx++];
             FunctionCode = buffer[idx++];
-            Length = buffer[idx++];
 
-            Data = new byte[Length];
-            Buffer.BlockCopy(buffer, idx, Data, 0, Length);
+            ReferenceNumber = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer, idx));
+            idx += 2;
+
+            WordCount = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer, idx));
+            idx += 2;
         }
     }
 }

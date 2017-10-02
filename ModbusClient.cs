@@ -49,7 +49,7 @@ namespace ModbusTcp
             var buffer = request.ToNetworkBuffer();
             await transportStream.WriteAsync(buffer, 0, buffer.Length);
 
-            var response = await ReadResponse<ModbusReply03>();
+            var response = await ReadResponseAsync<ModbusReply03>();
             return ReadAsShort(response.Data);
         }
 
@@ -65,8 +65,40 @@ namespace ModbusTcp
             var buffer = request.ToNetworkBuffer();
             await transportStream.WriteAsync(buffer, 0, buffer.Length);
 
-            var response = await ReadResponse<ModbusReply03>();
+            var response = await ReadResponseAsync<ModbusReply03>();
             return ReadAsFloat(response.Data);
+        }
+
+        public async Task WriteRegistersAsync(int offset, float[] values)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+                var request = new ModbusRequest16(offset, values);
+            var buffer = request.ToNetworkBuffer();
+            await transportStream.WriteAsync(buffer, 0, buffer.Length);
+
+            var response = await ReadResponseAsync<ModbusReply16>();
+        }
+
+        public async Task WriteRegistersAsync(int offset, short[] values)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest16();
+            request.WordCount = (short)(values.Length * 2);
+            request.RegisterValues = values.ToNetworkBytes();
+
+            var buffer = request.ToNetworkBuffer();
+            await transportStream.WriteAsync(buffer, 0, buffer.Length);
+
+            var response = await ReadResponseAsync<ModbusReply16>();
+        }
+
+        public void Terminate()
+        {
+            tcpClient.Close();
         }
 
         private short[] ReadAsShort(byte[] data)
@@ -102,7 +134,7 @@ namespace ModbusTcp
             return output.ToArray();
         }
 
-        private async Task<T> ReadResponse<T>() where T : ModbusReponseBase
+        private async Task<T> ReadResponseAsync<T>() where T : ModbusReponseBase
         {
             var headerBytes = await ReadFromBuffer(ModbusHeader.FixedLength);
             var header = ModbusHeader.FromNetworkBuffer(headerBytes);

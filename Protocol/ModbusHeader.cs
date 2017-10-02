@@ -27,6 +27,15 @@ namespace ModbusTcp.Protocol
             return (ModbusHeader)MemberwiseClone();
         }
 
+        public byte[] ToNetworkBuffer()
+        {
+            Length = IPAddress.HostToNetworkOrder(Length);
+            TransactionIdentifier = IPAddress.HostToNetworkOrder(Length);
+            Length = IPAddress.HostToNetworkOrder(Length);
+
+            return ToNetworkBuffer();
+        }
+
         public static ModbusHeader FromNetworkBuffer(byte[] buffer)
         {
             var header = new ModbusHeader();
