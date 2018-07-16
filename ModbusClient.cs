@@ -7,11 +7,14 @@ using System.Linq;
 using ModbusTcp.Protocol.Reply;
 using System.Collections.Generic;
 using System.Net;
+using System.Threading;
 
 namespace ModbusTcp
 {
     public class ModbusClient
     {
+        public TimeSpan SocketTimeout;
+        private CancellationToken cancellationToken;
         private readonly int port;
         private TcpClient tcpClient;
         private NetworkStream transportStream;
@@ -21,6 +24,11 @@ namespace ModbusTcp
         {
             this.ipAddress = ipAddress;
             this.port = port;
+
+            // We'll pass this CancellationToken around to time-bound our network calls
+            var cancellationTokenSource = new CancellationTokenSource(SocketTimeout);
+            cancellationTokenSource.Token.Register(() => transportStream.Close());
+            cancellationToken = cancellationTokenSource.Token;
         }
 
         public void Init()
@@ -50,7 +58,7 @@ namespace ModbusTcp
 
             var request = new ModbusRequest03(offset, count);
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length);
+            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
 
             var response = await ReadResponseAsync<ModbusReply03>();
             return ReadAsShort(response.Data);
@@ -70,7 +78,7 @@ namespace ModbusTcp
             var request = new ModbusRequest03(offset, count * 2 /* Float is 2 word */);
 
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length);
+            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
 
             var response = await ReadResponseAsync<ModbusReply03>();
             return ReadAsFloat(response.Data);
@@ -89,7 +97,7 @@ namespace ModbusTcp
 
             var request = new ModbusRequest16(offset, values);
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length);
+            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
 
             var response = await ReadResponseAsync<ModbusReply16>();
         }
@@ -110,7 +118,7 @@ namespace ModbusTcp
             request.RegisterValues = values.ToNetworkBytes();
 
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length);
+            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
 
             var response = await ReadResponseAsync<ModbusReply16>();
         }
@@ -180,7 +188,7 @@ namespace ModbusTcp
 
             while (remainder > 0)
             {
-                var readBytes = await transportStream.ReadAsync(buffer, idx, remainder);
+                var readBytes = await transportStream.ReadAsync(buffer, idx, remainder, cancellationToken);
                 remainder -= readBytes;
                 idx += readBytes;
 
