@@ -26,7 +26,6 @@ namespace ModbusTcp
             this.port = port;
 
             // We'll pass this CancellationToken around to time-bound our network calls
-            Console.WriteLine($"SocketTimeout is {socketTimeoutInMs} ms.");
             var cancellationTokenSource = new CancellationTokenSource(socketTimeoutInMs);
             cancellationTokenSource.Token.Register(() => transportStream.Close());
             cancellationToken = cancellationTokenSource.Token;
@@ -198,7 +197,7 @@ namespace ModbusTcp
                 {
                     if (cancellationToken.IsCancellationRequested)
                         throw new TimeoutException("SocketTimeout reached, aborting network call. " +
-                            "You can adjust the timeout through the socketTimeoutInSeconds parameter of ModbusClient().");
+                            "You can adjust the timeout through the socketTimeoutInMs parameter of ModbusClient.");
                     else
                         throw new SocketException((int)SocketError.ConnectionReset);
                 }
