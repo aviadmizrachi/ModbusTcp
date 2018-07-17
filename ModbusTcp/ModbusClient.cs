@@ -13,22 +13,24 @@ namespace ModbusTcp
 {
     public class ModbusClient
     {
-        public TimeSpan SocketTimeout;
         private CancellationToken cancellationToken;
+        private const int defaultSocketTimeout = 1800 * 1000; // 30 minutes
         private readonly int port;
         private TcpClient tcpClient;
         private NetworkStream transportStream;
         private readonly string ipAddress;
 
-        public ModbusClient(string ipAddress, int port)
+        public ModbusClient(string ipAddress, int port, int socketTimeoutInMs = defaultSocketTimeout)
         {
             this.ipAddress = ipAddress;
             this.port = port;
 
             // We'll pass this CancellationToken around to time-bound our network calls
-            var cancellationTokenSource = new CancellationTokenSource(SocketTimeout);
+            Console.WriteLine($"SocketTimeout is {socketTimeoutInMs} ms.");
+            var cancellationTokenSource = new CancellationTokenSource(socketTimeoutInMs);
             cancellationTokenSource.Token.Register(() => transportStream.Close());
             cancellationToken = cancellationTokenSource.Token;
+            cancellationToken.ThrowIfCancellationRequested();
         }
 
         public void Init()
@@ -194,7 +196,11 @@ namespace ModbusTcp
 
                 if (readBytes == 0)
                 {
-                    throw new SocketException((int)SocketError.ConnectionReset);
+                    if (cancellationToken.IsCancellationRequested)
+                        throw new TimeoutException("SocketTimeout reached, aborting network call. " +
+                            "You can adjust the timeout through the socketTimeoutInSeconds parameter of ModbusClient().");
+                    else
+                        throw new SocketException((int)SocketError.ConnectionReset);
                 }
             }
 
