@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
 
-
 namespace ModbusTcp.Tests
 {
     public class UnitTest1
@@ -19,7 +18,7 @@ namespace ModbusTcp.Tests
 
             Int32 port = 50222;
             string v4Loopback = ("127.0.0.1");
-            
+
             TcpListener server = new TcpListener(IPAddress.Parse(v4Loopback), port);
             server.Start();
 

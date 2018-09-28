@@ -13,23 +13,19 @@ namespace ModbusTcp
 {
     public class ModbusClient
     {
-        private CancellationToken cancellationToken;
-        private const int defaultSocketTimeout = 1800 * 1000; // 30 minutes
+        private int socketTimeout;
         private readonly int port;
         private TcpClient tcpClient;
         private NetworkStream transportStream;
         private readonly string ipAddress;
 
-        public ModbusClient(string ipAddress, int port, int socketTimeoutInMs = defaultSocketTimeout)
+        // Let's wait for 60 seconds for the socket if socketTimeout
+        // isn't passed by caller
+        public ModbusClient(string ipAddress, int port, int socketTimeout = 60000)
         {
             this.ipAddress = ipAddress;
             this.port = port;
-
-            // We'll pass this CancellationToken around to time-bound our network calls
-            var cancellationTokenSource = new CancellationTokenSource(socketTimeoutInMs);
-            cancellationTokenSource.Token.Register(() => transportStream.Close());
-            cancellationToken = cancellationTokenSource.Token;
-            cancellationToken.ThrowIfCancellationRequested();
+            this.socketTimeout = socketTimeout;
         }
 
         public void Init()
@@ -59,7 +55,14 @@ namespace ModbusTcp
 
             var request = new ModbusRequest03(offset, count);
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token);
+                }
+            }
 
             var response = await ReadResponseAsync<ModbusReply03>();
             return ReadAsShort(response.Data);
@@ -79,7 +82,14 @@ namespace ModbusTcp
             var request = new ModbusRequest03(offset, count * 2 /* Float is 2 word */);
 
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token);
+                }
+            }
 
             var response = await ReadResponseAsync<ModbusReply03>();
             return ReadAsFloat(response.Data);
@@ -98,7 +108,14 @@ namespace ModbusTcp
 
             var request = new ModbusRequest16(offset, values);
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token);
+                }
+            }
 
             var response = await ReadResponseAsync<ModbusReply16>();
         }
@@ -119,7 +136,14 @@ namespace ModbusTcp
             request.RegisterValues = values.ToNetworkBytes();
 
             var buffer = request.ToNetworkBuffer();
-            await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token);
+                }
+            }
 
             var response = await ReadResponseAsync<ModbusReply16>();
         }
@@ -189,18 +213,19 @@ namespace ModbusTcp
 
             while (remainder > 0)
             {
-                var readBytes = await transportStream.ReadAsync(buffer, idx, remainder, cancellationToken);
+                int readBytes = 0;
+                using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+                {
+                    using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                    {
+                        readBytes = await transportStream.ReadAsync(buffer, idx, remainder, cancellationTokenSource.Token);
+                    }
+                }
                 remainder -= readBytes;
                 idx += readBytes;
 
                 if (readBytes == 0)
-                {
-                    if (cancellationToken.IsCancellationRequested)
-                        throw new TimeoutException("SocketTimeout reached, aborting network call. " +
-                            "You can adjust the timeout through the socketTimeoutInMs parameter of ModbusClient.");
-                    else
-                        throw new SocketException((int)SocketError.ConnectionReset);
-                }
+                    throw new SocketException((int)SocketError.ConnectionReset);
             }
 
             return buffer;
