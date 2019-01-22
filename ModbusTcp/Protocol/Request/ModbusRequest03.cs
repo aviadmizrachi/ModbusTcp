@@ -7,14 +7,14 @@ namespace ModbusTcp.Protocol.Request
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     class ModbusRequest03 : ModbusBase
     {
-        public ModbusRequest03()
+        public ModbusRequest03(byte Unit = 0x01)
         {
             FunctionCode = 0x03;
-            UnitIdentifier = 0x01;
+            UnitIdentifier = Unit;
         }
 
-        public ModbusRequest03(int offset, int numberOfWords)
-            : this()
+        public ModbusRequest03(int offset, int numberOfWords, byte Unit = 0x01)
+            : this(Unit)
         {
             ReferenceNumber = (short)offset;
             WordCount = (short)numberOfWords;

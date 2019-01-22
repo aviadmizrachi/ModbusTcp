@@ -52,12 +52,12 @@ namespace ModbusTcp
         /// <param name="offset">The register offset</param>
         /// <param name="count">Number of words to read</param>
         /// <returns>The words read</returns>
-        public async Task<short[]> ReadRegistersAsync(int offset, int count)
+        public async Task<short[]> ReadRegistersAsync(int offset, int count, byte unit = 0x01)
         {
             if (tcpClient == null)
                 throw new Exception("Object not intialized");
 
-            var request = new ModbusRequest03(offset, count);
+            var request = new ModbusRequest03(offset, count, unit);
             var buffer = request.ToNetworkBuffer();
             await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
 
@@ -71,12 +71,12 @@ namespace ModbusTcp
         /// <param name="offset">The register offset</param>
         /// <param name="count">Number of floats to read</param>
         /// <returns>The floats read</returns>
-        public async Task<float[]> ReadRegistersFloatsAsync(int offset, int count)
+        public async Task<float[]> ReadRegistersFloatsAsync(int offset, int count, byte unit = 0x01)
         {
             if (tcpClient == null)
                 throw new Exception("Object not intialized");
 
-            var request = new ModbusRequest03(offset, count * 2 /* Float is 2 word */);
+            var request = new ModbusRequest03(offset, count * 2 /* Float is 2 word */, unit);
 
             var buffer = request.ToNetworkBuffer();
             await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
@@ -91,12 +91,12 @@ namespace ModbusTcp
         /// <param name="offset">The first register offset</param>
         /// <param name="values">The values to write</param>
         /// <returns>Awaitable task</returns>
-        public async Task WriteRegistersAsync(int offset, float[] values)
+        public async Task WriteRegistersAsync(int offset, float[] values, byte unit = 0x01)
         {
             if (tcpClient == null)
                 throw new Exception("Object not intialized");
 
-            var request = new ModbusRequest16(offset, values);
+            var request = new ModbusRequest16(offset, values, unit);
             var buffer = request.ToNetworkBuffer();
             await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationToken);
 
@@ -109,12 +109,12 @@ namespace ModbusTcp
         /// <param name="offset">The first register offset</param>
         /// <param name="values">The values to write</param>
         /// <returns>Awaitable task</returns>
-        public async Task WriteRegistersAsync(int offset, short[] values)
+        public async Task WriteRegistersAsync(int offset, short[] values, byte unit = 0x01)
         {
             if (tcpClient == null)
                 throw new Exception("Object not intialized");
 
-            var request = new ModbusRequest16();
+            var request = new ModbusRequest16(unit);
             request.WordCount = (short)(values.Length * 2);
             request.RegisterValues = values.ToNetworkBytes();
 
