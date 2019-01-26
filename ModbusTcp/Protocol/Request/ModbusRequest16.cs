@@ -9,14 +9,14 @@ namespace ModbusTcp.Protocol.Request
     {
         public const int FixedLength = 7;
 
-        public ModbusRequest16()
+        public ModbusRequest16(byte Unit = 0x01)
         {
             FunctionCode = 0x10;
-            UnitIdentifier = 0x01;
+            UnitIdentifier = Unit;
         }
 
-        public ModbusRequest16(int offset, float[] values)
-            : this()
+        public ModbusRequest16(int offset, float[] values, byte Unit = 0x01)
+            : this(Unit)
         {
 
             ReferenceNumber = (short)offset;
