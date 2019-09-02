@@ -28,11 +28,19 @@ namespace ModbusTcp.Protocol.Reply
             UnitIdentifier = buffer[idx++];
             FunctionCode = buffer[idx++];
 
-            ReferenceNumber = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer, idx));
-            idx += 2;
+            if (FunctionCode >= 0x80)
+            {
+                var exceptionCode = buffer[idx];
+                throw new ModbusReplyException(exceptionCode);
+            }
+            else
+            {
+                ReferenceNumber = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer, idx));
+                idx += 2;
 
-            WordCount = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer, idx));
-            idx += 2;
+                WordCount = IPAddress.NetworkToHostOrder(BitConverter.ToInt16(buffer, idx));
+                idx += 2;
+            }
         }
     }
 }

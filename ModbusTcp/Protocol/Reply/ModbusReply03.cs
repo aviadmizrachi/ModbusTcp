@@ -22,10 +22,19 @@ namespace ModbusTcp.Protocol.Reply
 
             UnitIdentifier = buffer[idx++];
             FunctionCode = buffer[idx++];
-            Length = buffer[idx++];
 
-            Data = new byte[Length];
-            Buffer.BlockCopy(buffer, idx, Data, 0, Length);
+            if (FunctionCode >= 0x80)
+            {
+                var exceptionCode = buffer[idx];
+                throw new ModbusReplyException(exceptionCode);
+            }
+            else
+            {
+                Length = buffer[idx++];
+
+                Data = new byte[Length];
+                Buffer.BlockCopy(buffer, idx, Data, 0, Length);
+            }
         }
     }
 }
