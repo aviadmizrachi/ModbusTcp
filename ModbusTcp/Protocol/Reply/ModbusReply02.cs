@@ -2,7 +2,7 @@
 
 namespace ModbusTcp.Protocol.Reply
 {
-    class ModbusReply03 : ModbusReponseBase
+    class ModbusReply02 : ModbusReponseBase
     {
         public byte UnitIdentifier;
 
