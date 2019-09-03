@@ -100,12 +100,12 @@ namespace ModbusTcp
         /// <param name="offset">The register offset</param>
         /// <param name="count">Number of words to read</param>
         /// <returns>The words read</returns>
-        public async Task<byte[]> ReadInputsAsync(int offset, int count)
+        public async Task<byte[]> ReadInputsAsync(int offset, int count, byte unit = 0x01)
         {
             if (tcpClient == null)
                 throw new Exception("Object not intialized");
 
-            var request = new ModbusRequest02(offset, count);
+            var request = new ModbusRequest02(offset, count, unit);
             var buffer = request.ToNetworkBuffer();
 
             using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
@@ -125,12 +125,12 @@ namespace ModbusTcp
         /// <param name="offset">The register offset</param>
         /// <param name="count">Number of words to read</param>
         /// <returns>The words read</returns>
-        public async Task<byte[]> ReadCoilsAsync(int offset, int count)
+        public async Task<byte[]> ReadCoilsAsync(int offset, int count, byte unit = 0x01)
         {
             if (tcpClient == null)
                 throw new Exception("Object not intialized");
 
-            var request = new ModbusRequest01(offset, count);
+            var request = new ModbusRequest01(offset, count, unit);
             var buffer = request.ToNetworkBuffer();
 
             using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
