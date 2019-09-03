@@ -66,6 +66,7 @@ namespace ModbusTcp
                 }
             }
             var response = await ReadResponseAsync<ModbusReply03>();
+
             return ReadAsShort(response.Data);
         }
 
@@ -169,6 +170,26 @@ namespace ModbusTcp
 
             var response = await ReadResponseAsync<ModbusReply03>();
             return ReadAsFloat(response.Data);
+        }
+
+        public async Task<byte[]> ReadHoldingRegistersAsync(int offset, int count, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest03(offset, count, unit);
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token);
+                }
+            }
+
+            var response = await ReadResponseAsync<ModbusReply03>();
+            return response.Data;
         }
 
         /// <summary>
