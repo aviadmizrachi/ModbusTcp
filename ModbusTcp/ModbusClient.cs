@@ -13,6 +13,8 @@ namespace ModbusTcp
 {
     public class ModbusClient
     {
+        public bool Connected => tcpClient?.Connected ?? false;
+
         private int socketTimeout;
         private readonly int port;
         private TcpClient tcpClient;
