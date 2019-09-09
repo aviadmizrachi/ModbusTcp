@@ -71,6 +71,32 @@ namespace ModbusTcp
         }
 
         /// <summary>
+        /// Reads words holding registers
+        /// </summary>
+        /// <param name="offset">The register offset</param>
+        /// <param name="count">Number of words to read</param>
+        /// <returns>The words read</returns>
+        public short[] ReadRegisters(int offset, int count, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest03(offset, count, unit);
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+            var response = ReadResponse<ModbusReply03>();
+
+            return ReadAsShort(response.Data);
+        }
+
+        /// <summary>
         /// Reads words input registers
         /// </summary>
         /// <param name="offset">The register offset</param>
@@ -92,6 +118,31 @@ namespace ModbusTcp
                 }
             }
             var response = await ReadResponseAsync<ModbusReply04>();
+            return ReadAsShort(response.Data);
+        }
+
+        /// <summary>
+        /// Reads words input registers
+        /// </summary>
+        /// <param name="offset">The register offset</param>
+        /// <param name="count">Number of words to read</param>
+        /// <returns>The words read</returns>
+        public short[] ReadInputRegisters(int offset, int count, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest04(offset, count, unit);
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+            var response = ReadResponse<ModbusReply04>();
             return ReadAsShort(response.Data);
         }
 
@@ -126,6 +177,31 @@ namespace ModbusTcp
         /// <param name="offset">The register offset</param>
         /// <param name="count">Number of words to read</param>
         /// <returns>The words read</returns>
+        public byte[] ReadInputs(int offset, int count, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest02(offset, count, unit);
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.WriteAsync(buffer, 0, buffer.Length);
+                }
+            }
+            var response = ReadResponse<ModbusReply02>();
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Reads words input registers
+        /// </summary>
+        /// <param name="offset">The register offset</param>
+        /// <param name="count">Number of words to read</param>
+        /// <returns>The words read</returns>
         public async Task<byte[]> ReadCoilsAsync(int offset, int count, byte unit = 0x01)
         {
             if (tcpClient == null)
@@ -142,6 +218,31 @@ namespace ModbusTcp
                 }
             }
             var response = await ReadResponseAsync<ModbusReply01>();
+            return response.Data;
+        }
+
+        /// <summary>
+        /// Reads words input registers
+        /// </summary>
+        /// <param name="offset">The register offset</param>
+        /// <param name="count">Number of words to read</param>
+        /// <returns>The words read</returns>
+        public byte[] ReadCoils(int offset, int count, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest01(offset, count, unit);
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+            var response = ReadResponse<ModbusReply01>();
             return response.Data;
         }
 
@@ -172,6 +273,33 @@ namespace ModbusTcp
             return ReadAsFloat(response.Data);
         }
 
+        /// <summary>
+        /// Reads floats from holding registers
+        /// </summary>
+        /// <param name="offset">The register offset</param>
+        /// <param name="count">Number of floats to read</param>
+        /// <returns>The floats read</returns>
+        public float[] ReadRegistersFloats(int offset, int count, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest03(offset, count * 2 /* Float is 2 word */, unit);
+
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+
+            var response = ReadResponse<ModbusReply03>();
+            return ReadAsFloat(response.Data);
+        }
+
         public async Task<byte[]> ReadHoldingRegistersAsync(int offset, int count, byte unit = 0x01)
         {
             if (tcpClient == null)
@@ -189,6 +317,26 @@ namespace ModbusTcp
             }
 
             var response = await ReadResponseAsync<ModbusReply03>();
+            return response.Data;
+        }
+
+        public byte[] ReadHoldingRegisters(int offset, int count, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest03(offset, count, unit);
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+
+            var response = ReadResponse<ModbusReply03>();
             return response.Data;
         }
 
@@ -288,10 +436,10 @@ namespace ModbusTcp
 
         private async Task<T> ReadResponseAsync<T>() where T : ModbusReponseBase
         {
-            var headerBytes = await ReadFromBuffer(ModbusHeader.FixedLength);
+            var headerBytes = await ReadFromBufferAsync(ModbusHeader.FixedLength);
             var header = ModbusHeader.FromNetworkBuffer(headerBytes);
 
-            var dataBytes = await ReadFromBuffer(header.Length);
+            var dataBytes = await ReadFromBufferAsync(header.Length);
 
             var fullBuffer = headerBytes.Concat(dataBytes).ToArray();
             var response = Activator.CreateInstance<T>();
@@ -300,7 +448,21 @@ namespace ModbusTcp
             return response;
         }
 
-        private async Task<byte[]> ReadFromBuffer(int totalSize)
+        private T ReadResponse<T>() where T : ModbusReponseBase
+        {
+            var headerBytes = ReadFromBuffer(ModbusHeader.FixedLength);
+            var header = ModbusHeader.FromNetworkBuffer(headerBytes);
+
+            var dataBytes = ReadFromBuffer(header.Length);
+
+            var fullBuffer = headerBytes.Concat(dataBytes).ToArray();
+            var response = Activator.CreateInstance<T>();
+            response.FromNetworkBuffer(fullBuffer);
+
+            return response;
+        }
+
+        private async Task<byte[]> ReadFromBufferAsync(int totalSize)
         {
             var buffer = new byte[totalSize];
 
@@ -315,6 +477,33 @@ namespace ModbusTcp
                     using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
                     {
                         readBytes = await transportStream.ReadAsync(buffer, idx, remainder, cancellationTokenSource.Token);
+                    }
+                }
+                remainder -= readBytes;
+                idx += readBytes;
+
+                if (readBytes == 0)
+                    throw new SocketException((int)SocketError.ConnectionReset);
+            }
+
+            return buffer;
+        }
+
+        private byte[] ReadFromBuffer(int totalSize)
+        {
+            var buffer = new byte[totalSize];
+
+            var idx = 0;
+            var remainder = totalSize;
+
+            while (remainder > 0)
+            {
+                int readBytes = 0;
+                using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+                {
+                    using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                    {
+                        readBytes = transportStream.Read(buffer, idx, remainder);
                     }
                 }
                 remainder -= readBytes;
