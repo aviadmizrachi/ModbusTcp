@@ -389,7 +389,139 @@ namespace ModbusTcp
                 }
             }
 
-            var response = await ReadResponseAsync<ModbusReply16>();
+            await ReadResponseAsync<ModbusReply16>();
+        }
+
+        /// <summary>
+        /// Writes words to holding registers
+        /// </summary>
+        /// <param name="offset">The first register offset</param>
+        /// <param name="values">The values to write</param>
+        /// <returns>Awaitable task</returns>
+        public void WriteRegisters(int offset, short[] values, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest16(unit);
+            request.WordCount = (short)(values.Length * 2);
+            request.RegisterValues = values.ToNetworkBytes();
+
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+
+            ReadResponse<ModbusReply16>();
+        }
+
+        /// <summary>
+        /// Writes bit to coil
+        /// </summary>
+        /// <param name="offset">The first register offset</param>
+        /// <param name="values">The values to write</param>
+        /// <returns>Awaitable task</returns>
+        public async Task WriteCoilAsync(int offset, bool value, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest05(unit, value, unit);
+
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token);
+                }
+            }
+
+            await ReadResponseAsync<ModbusReply05>();
+        }
+
+        /// <summary>
+        /// Writes bit to coil
+        /// </summary>
+        /// <param name="offset">The first register offset</param>
+        /// <param name="values">The values to write</param>
+        /// <returns>Awaitable task</returns>
+        public void WriteCoil(int offset, bool value, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest05(unit, value, unit);
+
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.Write(buffer, 0, buffer.Length);
+                }
+            }
+
+            ReadResponse<ModbusReply05>();
+        }
+
+        /// <summary>
+        /// Writes single register to holding registers
+        /// </summary>
+        /// <param name="offset">The first register offset</param>
+        /// <param name="values">The values to write</param>
+        /// <returns>Awaitable task</returns>
+        public async Task WriteRegisterAsync(int offset, short value, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest06(unit, value, unit);
+
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    await transportStream.WriteAsync(buffer, 0, buffer.Length, cancellationTokenSource.Token);
+                }
+            }
+
+            await ReadResponseAsync<ModbusReply06>();
+        }
+
+        /// <summary>
+        /// Writes single register to holding registers
+        /// </summary>
+        /// <param name="offset">The first register offset</param>
+        /// <param name="values">The values to write</param>
+        /// <returns>Awaitable task</returns>
+        public void WriteRegister(int offset, short value, byte unit = 0x01)
+        {
+            if (tcpClient == null)
+                throw new Exception("Object not intialized");
+
+            var request = new ModbusRequest06(unit, value, unit);
+
+            var buffer = request.ToNetworkBuffer();
+
+            using (var cancellationTokenSource = new CancellationTokenSource(socketTimeout))
+            {
+                using (cancellationTokenSource.Token.Register(() => transportStream.Close()))
+                {
+                    transportStream.WriteAsync(buffer, 0, buffer.Length);
+                }
+            }
+
+            ReadResponse<ModbusReply06>();
         }
 
         /// <summary>
