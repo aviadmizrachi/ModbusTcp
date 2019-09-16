@@ -566,7 +566,7 @@ namespace ModbusTcp
             return output.ToArray();
         }
 
-        private async Task<T> ReadResponseAsync<T>() where T : ModbusReponseBase
+        private async Task<T> ReadResponseAsync<T>() where T : ModbusResponseBase
         {
             var headerBytes = await ReadFromBufferAsync(ModbusHeader.FixedLength);
             var header = ModbusHeader.FromNetworkBuffer(headerBytes);
@@ -580,7 +580,7 @@ namespace ModbusTcp
             return response;
         }
 
-        private T ReadResponse<T>() where T : ModbusReponseBase
+        private T ReadResponse<T>() where T : ModbusResponseBase
         {
             var headerBytes = ReadFromBuffer(ModbusHeader.FixedLength);
             var header = ModbusHeader.FromNetworkBuffer(headerBytes);

@@ -4,7 +4,7 @@ namespace ModbusTcp.Protocol.Reply
 {
     abstract class ModbusResponseBase : ModbusBase
     {
-        public const byte ModbusErrorOffset = 0x80;
+        private const byte ModbusErrorOffset = 0x80;
 
         public byte UnitIdentifier;
 
