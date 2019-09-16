@@ -5,15 +5,15 @@ using System.Runtime.InteropServices;
 namespace ModbusTcp.Protocol.Request
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    class ModbusRequest03 : ModbusRequestBase
+    class ModbusRequest04 : ModbusRequestBase
     {
-        public ModbusRequest03(byte Unit = 0x01)
+        public ModbusRequest04(byte Unit = 0x01)
         {
-            FunctionCode = 0x03;
+            FunctionCode = 0x04;
             UnitIdentifier = Unit;
         }
 
-        public ModbusRequest03(int offset, int numberOfWords, byte Unit = 0x01)
+        public ModbusRequest04(int offset, int numberOfWords, byte Unit = 0x01)
             : this(Unit)
         {
             ReferenceNumber = (short)offset;
@@ -25,7 +25,7 @@ namespace ModbusTcp.Protocol.Request
 
         public override byte[] ToNetworkBuffer()
         {
-            var copy = (ModbusRequest03)MemberwiseClone();
+            var copy = (ModbusRequest04)MemberwiseClone();
             copy.Header = Header.Clone();
             copy.ApplyNetworkOrderForBase();
 

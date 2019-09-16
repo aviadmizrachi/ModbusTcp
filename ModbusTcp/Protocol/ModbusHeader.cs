@@ -6,11 +6,6 @@ namespace ModbusTcp.Protocol
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
     public class ModbusHeader
     {
-        public ModbusHeader()
-        {
-            Length = 0x06;
-        }
-
         [MarshalAs(UnmanagedType.U2)]
         public short TransactionIdentifier;
 
@@ -18,7 +13,7 @@ namespace ModbusTcp.Protocol
         public short ProtocolIdentifier;
 
         [MarshalAs(UnmanagedType.U2)]
-        public short Length;
+        public short Length = FixedLength;
 
         public const int FixedLength = 6;
 
