@@ -6,10 +6,12 @@ namespace ModbusTcp.Protocol.Reply
     [Serializable]
     public sealed class ModbusReplyException : Exception
     {
+        public byte OrginalFunctionCode { get; set; }
         public byte ExceptionCode { get; set; }
 
-        public ModbusReplyException(byte exceptionCode) : base(GetMsg(exceptionCode))
+        public ModbusReplyException(byte orginalFunctionCode, byte exceptionCode) : base(GetMsg(exceptionCode))
         {
+            OrginalFunctionCode = orginalFunctionCode;
             ExceptionCode = exceptionCode;
         }
 
