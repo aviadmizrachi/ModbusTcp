@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace ModbusTcp.Protocol.Request
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    class ModbusRequest02 : ModbusBase
+    class ModbusRequest02 : ModbusRequestBase
     {
         public ModbusRequest02(byte Unit = 0x01)
         {
@@ -14,20 +14,11 @@ namespace ModbusTcp.Protocol.Request
         }
 
         public ModbusRequest02(int offset, int numberOfInputs, byte Unit = 0x01)
-            : this()
+            : this(Unit)
         {
             ReferenceNumber = (short)offset;
             BitCount = (short)numberOfInputs;
         }
-
-        [MarshalAs(UnmanagedType.U1)]
-        public byte UnitIdentifier;
-
-        [MarshalAs(UnmanagedType.U1)]
-        public byte FunctionCode;
-
-        [MarshalAs(UnmanagedType.U2)]
-        public short ReferenceNumber;
 
         [MarshalAs(UnmanagedType.U2)]
         public short BitCount;
@@ -36,12 +27,8 @@ namespace ModbusTcp.Protocol.Request
         {
             var copy = (ModbusRequest02)MemberwiseClone();
             copy.Header = Header.Clone();
+            copy.ApplyNetworkOrderForBase();
 
-            copy.Header.Length = IPAddress.HostToNetworkOrder(Header.Length);
-            copy.Header.ProtocolIdentifier = IPAddress.HostToNetworkOrder(Header.ProtocolIdentifier);
-            copy.Header.TransactionIdentifier = IPAddress.HostToNetworkOrder(Header.TransactionIdentifier);
-
-            copy.ReferenceNumber = IPAddress.HostToNetworkOrder(copy.ReferenceNumber);
             copy.BitCount = IPAddress.HostToNetworkOrder(copy.BitCount);
 
             return copy.ToNetworkBytes();

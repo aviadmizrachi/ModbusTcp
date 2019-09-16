@@ -5,7 +5,7 @@ using System.Runtime.InteropServices;
 namespace ModbusTcp.Protocol.Request
 {
     [StructLayout(LayoutKind.Sequential, Pack = 1)]
-    public class ModbusRequest16 : ModbusBase
+    public class ModbusRequest16 : ModbusRequestBase
     {
         public const int FixedLength = 7;
 
@@ -27,15 +27,6 @@ namespace ModbusTcp.Protocol.Request
             Header.Length = (short) (FixedLength + RegisterValues.Length);
         }
 
-        [MarshalAs(UnmanagedType.U1)]
-        public byte UnitIdentifier;
-
-        [MarshalAs(UnmanagedType.U1)]
-        public byte FunctionCode;
-
-        [MarshalAs(UnmanagedType.U2)]
-        public short ReferenceNumber;
-
         [MarshalAs(UnmanagedType.U2)]
         public short WordCount;
 
@@ -49,10 +40,8 @@ namespace ModbusTcp.Protocol.Request
         {
             var copy = (ModbusRequest16)MemberwiseClone();
             copy.Header = Header.Clone();
-
-            copy.Header.Length = IPAddress.HostToNetworkOrder(Header.Length);
-            copy.Header.ProtocolIdentifier = IPAddress.HostToNetworkOrder(Header.ProtocolIdentifier);
-            copy.Header.TransactionIdentifier = IPAddress.HostToNetworkOrder(Header.TransactionIdentifier);
+            copy.Header = Header.Clone();
+            copy.ApplyNetworkOrderForBase();
 
             copy.WordCount = IPAddress.HostToNetworkOrder(copy.WordCount);
 
